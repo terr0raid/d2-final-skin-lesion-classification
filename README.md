@@ -64,7 +64,7 @@ Kağıt üzerinde ResNet50 ve ViT modelleri **%86 Accuracy** ile eşit görünme
 
 **Sonuç:** ResNet50 yerel doku özelliklerine odaklanarak sağlıklı benleri (`nv`) çok iyi ayırt edip ortalamayı yükseltse de, ViT global bağlamı yakalayarak kanserli dokuyu ayırt etmede çok daha üstün bir performans sergilemiştir.
 
-## 3. Gelecek İyileştirmeler (Ablasyon Planı)
+## 3. Gelecek İyileştirmeler (Ablasyon Planı) D3 ve ilerisi icin.
 
 Mevcut modellerin performansını artırmak ve bileşenlerin etkisini ölçmek için v0.2.0 sürümünde aşağıdaki ablasyon (ablation) deneyleri planlanmıştır:
 
