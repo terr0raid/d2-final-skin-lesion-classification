@@ -1,74 +1,54 @@
-# Model Performans, Analiz ve Konfigürasyon Raporu
+****# Sürüm Notları (Release Notes)
 
-Bu dizin, HAM10000 veri seti üzerinde eğitilmiş Makine Öğrenmesi (ML) ve Derin Öğrenme (DL) modellerinin ağırlıklarını, performans metriklerini ve gelecek geliştirme planlarını içerir.
+## v0.1.0 - D2 Teslimi (Uygulama ve Derinleştirme)
+**Tarih:** Aralık 2025
+**Kapsam:** Veri hattının kurulması ve Baseline (Referans) modellerin oluşturulması.
 
-## 1. Model Mimarileri ve Hiperparametreler
+### 🚀 Yenilikler ve Eklenenler
+* **Proje İskeleti:**
+    * `src/`, `notebooks/`, `data/`, `output/` dizin yapısı oluşturuldu.
+    * `requirements.txt` ile bağımlılıklar sabitlendi.
+* **Veri Hattı (Data Pipeline):**
+    * HAM10000 veri seti entegrasyonu sağlandı.
+    * **Stratified Split** ile veri dengesizliği gözetilerek Eğitim (%80), Doğrulama (%10) ve Test (%10) setleri ayrıldı.
+    * Görüntü ön işleme (Resize: 224x224) ve Augmentation (sadece train set için: Flip, Rotation) süreçleri eklendi.
+* **Modeller (Baselines):**
+    * **ML (Makine Öğrenmesi):** Random Forest ve SVM modelleri kuruldu (Girdi boyutu: 64x64 flatten).
+    * **DL (Derin Öğrenme):** ResNet50 ve Vision Transformer (ViT-B/16) modelleri transfer öğrenme (ImageNet ağırlıkları) ile eğitildi.
+* **Raporlama:**
+    * Eğitim/Doğrulama kayıp (loss) grafikleri oluşturuldu.
+    * Confusion Matrix ve Sınıflandırma Raporları (F1-Score, Recall, Precision) `output/figures` altına eklendi.
 
-Tüm DL modelleri ImageNet ağırlıkları ile başlatılmış (Transfer Learning) ve 10 Epoch boyunca eğitilmiştir.
+### Reproducibility (Tekrarlanabilirlik) Bilgisi
+Deneylerin tutarlı ve tekrarlanabilir olması için tüm rastgele süreçlerde **sabit seed** kullanılmıştır.
 
-| Parametre | Değer / Açıklama |
-| :--- | :--- |
-| **Girdi Boyutu** | 224x224 (DL), 64x64 Flatten (ML) |
-| **Batch Size** | 32 |
-| **Optimizer** | SGD (lr=0.001, momentum=0.9) |
-| **Loss Function** | CrossEntropyLoss |
-| **Augmentation** | RandomHorizontalFlip, RandomRotation(15) (Sadece Train) |
+* **Global Seed (Random State):** `42`
+* **Kullanıldığı Yerler:**
+    * Veri seti ayrımı (`train_test_split` içinde `src/prepare_data.py`).
+    * ML Modelleri (`RandomForestClassifier`, `SVC` başlangıç parametreleri).
+    * DL Modelleri (Torch/Cuda deterministic mod ayarları - notebook içinde).
 
-## 2. Test Seti Sonuçları ve Kritik Analiz
+### ⚠️ Bilinen Sorunlar / Kısıtlar
+* Sınıf dengesizliği (Class Imbalance) nedeniyle ML modelleri `nv` sınıfına aşırı uyum (overfit) göstermektedir.
+* ViT modelinin eğitimi, ResNet50'ye göre daha fazla GPU belleği ve süre gerektirmektedir.
 
-Modellerin başarısı, dengesiz veri setlerinde sınıf başarısını daha iyi yansıtan **Macro F1-Score** ve hayati risk taşıyan sınıflar için **Recall (Duyarlılık)** üzerinden değerlendirilmiştir.
+## 🔮 Gelecek Sürüm Hedefleri (v0.2.0 Roadmap)
+**Odak:** Ablasyon Çalışmaları (Ablation Studies) ve Model Optimizasyonu
 
-| Model | Tür | Accuracy | **Macro F1** | Açıklama |
-| :--- | :--- | :--- | :--- | :--- |
-| **ResNet50** | DL (CNN) | **0.86** | **0.74** | En yüksek genel skorlara sahip, ancak kritik sınıflarda yetersiz. |
-| **ViT-B/16** | DL (Transformer)| 0.86 | 0.73 | Kanser tespitinde en güvenilir model. |
-| **Random Forest**| ML | 0.71 | 0.28 | Baseline. Azınlık sınıflarda (df, vasc) başarısız. |
-| **SVM** | ML | 0.71 | 0.28 | Baseline. NV sınıfına aşırı uyum (overfit) eğilimi. |
+D2 aşamasında kurulan baseline modellerin performansını artırmak ve hangi bileşenin ne kadar katkı sağladığını ölçmek için **v0.2.0** sürümünde aşağıdaki ablasyon deneyleri planlanmıştır:
 
-### ⚠️ Kritik Bulgu: "Accuracy Yanılgısı" ve Melanom Tespiti
-Kağıt üzerinde ResNet50 ve ViT modelleri **%86 Accuracy** ile eşit görünmektedir. Ancak **Melanom (Cilt Kanseri)** sınıfı özelinde yapılan inceleme, hayati bir farkı ortaya koymaktadır:
+### 1. Hiperparametre Ablasyonları
+Modelin öğrenme dinamiğini optimize etmek için:
+* **Learning Rate Scheduler:** Sabit LR yerine `StepLR` veya `CosineAnnealing` kullanımının yakınsama üzerindeki etkisi.
+* **Weight Decay:** Overfitting (aşırı öğrenme) riskine karşı farklı regülarizasyon katsayılarının (örn. 1e-4, 1e-5) test edilmesi.
+* **Batch Size:** Donanım kısıtları dahilinde gradient kararlılığı üzerindeki etkinin ölçülmesi.
 
-| Model | Genel Doğruluk | **Melanom Recall (Duyarlılık)** | Klinik Yorum |
-| :--- | :--- | :--- | :--- |
-| **ResNet50** | 0.86 | **0.49** | Kanserli vakaların **%51'ini kaçırmıştır.** Tıbbi açıdan risklidir. |
-| **ViT-B/16** | 0.86 | **0.80** | Kanserli vakaların **%80'ini tespit etmiştir.** Güvenilir tercihtir. |
+### 2. Kayıp Fonksiyonu (Loss Function) Deneyleri
+Sınıf dengesizliğini (özellikle `nv` dominasyonunu) kırmak için:
+* **Baseline:** Standart `CrossEntropyLoss`.
+* **Aday 1:** `Weighted CrossEntropy` (Sınıf frekansının tersi ile ağırlıklandırma).
+* **Aday 2:** `Focal Loss` (Modelin zorlandığı örneklere daha fazla odaklanması).
 
-**Sonuç:** ResNet50 yerel doku özelliklerine odaklanarak sağlıklı benleri (`nv`) çok iyi ayırt edip ortalamayı yükseltse de, ViT global bağlamı yakalayarak kanserli dokuyu ayırt etmede çok daha üstün bir performans sergilemiştir.
-
-## 3. Gelecek İyileştirmeler (Ablasyon Planı)
-
-Mevcut modellerin performansını artırmak ve bileşenlerin etkisini ölçmek için v0.2.0 sürümünde aşağıdaki ablasyon (ablation) deneyleri planlanmıştır:
-
-1.  **Kayıp Fonksiyonu:** Sınıf dengesizliğini aşmak için standart `CrossEntropy` yerine `Weighted CrossEntropy` ve `Focal Loss` kullanımı.
-2.  **Hiperparametreler:** Sabit Learning Rate yerine `CosineAnnealing` veya `StepLR` kullanılarak yakınsama hızının analizi.
-3.  **Veri Artırma:** `ColorJitter` ve `Cutout` gibi ileri tekniklerin modele ve özellikle Recall değerine katkısının ölçülmesi.
-4.  **Mimari:** `EfficientNet` (Hız/Performans) ve `ResNet101` (Derinlik) varyasyonlarının test edilmesi.
-
-## 4. Görselleştirmeler
-
-### ResNet50 Başarımı
-Eğitim boyunca Loss düşüşü ve Test seti Confusion Matrix:
-<p float="left">
-  <img src="output/figures/resnet50_train_val_loss.png" width="45%" />
-  <img src="output/figures/resnet50_conf_matrix.png" width="45%" />
-</p>
-
-### Vision Transformer (ViT) Başarımı
-<p float="left">
-  <img src="output/figures/vit16_train_val_loss.png" width="45%" />
-  <img src="output/figures/vit16_conf_matrix.png" width="45%" />
-</p>
-
-## 5. Kullanım
-Model ağırlıklarını yüklemek için `output/models/` dizinindeki `.pth` dosyalarını kullanabilirsiniz (Dosya boyutları nedeniyle Drive linki README'de mevcuttur).
-
-```python
-# Örnek: ResNet50 yükleme
-import torch
-from torchvision import models
-import torch.nn as nn
-
-model = models.resnet50(weights=None)
-model.fc = nn.Linear(model.fc.in_features, 7) # 7 Sınıf
-model.load_state_dict(torch.load('resnet50_d2_model.pth'))
-model.eval()
+### 3. Mimari ve Veri Bileşenleri
+* **Augmentation Stratejisi:** Mevcut `Flip/Rotate` işlemlerine ek olarak `ColorJitter` veya `Cutout` tekniklerinin modele katkısının izole edilmesi.
+* **Backbone Karşılaştırması:** ResNet50 yerine daha hafif `EfficientNet-B0` veya daha derin `ResNet101` kullanılarak accuracy/hız takasının analizi.
