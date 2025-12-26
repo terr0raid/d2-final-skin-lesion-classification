@@ -29,7 +29,7 @@ Bu projede kullanılan PyTorch, Scikit-learn ve Pandas kütüphaneleri, akademik
 
 # Model Performans, Analiz ve Konfigürasyon Raporu
 
-Bu dizin, HAM10000 veri seti üzerinde eğitilmiş Makine Öğrenmesi (ML) ve Derin Öğrenme (DL) modellerinin ağırlıklarını, performans metriklerini ve gelecek geliştirme planlarını içerir.
+Bu dizin, HAM10000 veri seti üzerinde eğitilmiş Makine Öğrenmesi (ML) ve Derin Öğrenme (DL) modellerinin ağırlıklarını, performans metriklerini ve geliştirme süreçlerini içerir.
 
 ## 1. Model Mimarileri ve Hiperparametreler
 
@@ -64,16 +64,27 @@ Kağıt üzerinde ResNet50 ve ViT modelleri **%86 Accuracy** ile eşit görünme
 
 **Sonuç:** ResNet50 yerel doku özelliklerine odaklanarak sağlıklı benleri (`nv`) çok iyi ayırt edip ortalamayı yükseltse de, ViT global bağlamı yakalayarak kanserli dokuyu ayırt etmede çok daha üstün bir performans sergilemiştir.
 
-## 3. Gelecek İyileştirmeler (Ablasyon Planı)
+## 3. Gerçekleştirilen Ablasyon Çalışmaları (D2 Kapsamı)
 
-Mevcut modellerin performansını artırmak ve bileşenlerin etkisini ölçmek için v0.2.0 sürümünde aşağıdaki ablasyon (ablation) deneyleri planlanmıştır:
+D2 aşamasında model performansını optimize etmek ve dengesizliği yönetmek amacıyla aşağıdaki ablasyon (ablation) deneyleri kod üzerinde uygulanmış ve test edilmiştir:
 
-1.  **Kayıp Fonksiyonu:** Sınıf dengesizliğini aşmak için standart `CrossEntropy` yerine `Weighted CrossEntropy` ve `Focal Loss` kullanımı.
-2.  **Hiperparametreler:** Sabit Learning Rate yerine `CosineAnnealing` veya `StepLR` kullanılarak yakınsama hızının analizi.
-3.  **Veri Artırma:** `ColorJitter` ve `Cutout` gibi ileri tekniklerin modele ve özellikle Recall değerine katkısının ölçülmesi.
-4.  **Mimari:** `EfficientNet` (Hız/Performans) ve `ResNet101` (Derinlik) varyasyonlarının test edilmesi.
+1.  **Bileşen Ablasyonu (Loss Function):**
+    * *İşlem:* Standart `CrossEntropyLoss` ile sınıf frekanslarına ters orantılı ağırlıklandırılmış `Weighted CrossEntropyLoss` karşılaştırıldı.
+    * *Sonuç:* Ağırlıklı kayıp fonksiyonu kullanıldığında, baskın sınıf (`nv`) dominasyonu kırılarak Melanom sınıfındaki **Recall** değerinde artış gözlemlendi.
+2.  **Hiperparametre Ablasyonu (Optimizer):**
+    * *İşlem:* `SGD` (Momentum 0.9) ve `Adam` (lr=1e-4) optimizerları kıyaslandı.
+    * *Sonuç:* Bu veri seti ve ViT mimarisi için `SGD`'nin daha kararlı (stable) bir öğrenme süreci sunduğu tespit edildi.
 
-## 4. Görselleştirmeler
+## 4. Gelecek İyileştirmeler (D3 ve İlerisi)
+
+Mevcut modelleri daha da iyileştirmek için v0.2.0 ve sonrası için planlanan çalışmalar:
+
+1.  **İleri Seviye Loss Fonksiyonları:** Zor örneklere odaklanmak için `Focal Loss` entegrasyonu.
+2.  **Learning Rate Scheduler:** Sabit LR yerine `CosineAnnealing` veya `StepLR` kullanılarak yakınsama hızının optimize edilmesi.
+3.  **Advanced Augmentation:** `ColorJitter`, `Cutout` ve `RandAugment` tekniklerinin genelleme yeteneğine katkısının ölçülmesi.
+4.  **Mimari Çeşitliliği:** Kaynak verimliliği için `EfficientNet` ve derinlik analizi için `ResNet101` varyasyonlarının teste eklenmesi.
+
+## 5. Görselleştirmeler
 
 ### ResNet50 Başarımı
 Eğitim boyunca Loss düşüşü ve Test seti Confusion Matrix:
@@ -88,7 +99,7 @@ Eğitim boyunca Loss düşüşü ve Test seti Confusion Matrix:
   <img src="output/figures/vit16_conf_matrix.png" width="45%" />
 </p>
 
-## 5. Kullanım
+## 6. Kullanım
 Model ağırlıklarını yüklemek için `output/models/` dizinindeki `.pth` dosyalarını kullanabilirsiniz (Dosya boyutları nedeniyle Drive linki README'de mevcuttur).
 
 ```python
@@ -96,6 +107,11 @@ Model ağırlıklarını yüklemek için `output/models/` dizinindeki `.pth` dos
 import torch
 from torchvision import models
 import torch.nn as nn
+
+model = models.resnet50(weights=None)
+model.fc = nn.Linear(model.fc.in_features, 7) # 7 Sınıf
+model.load_state_dict(torch.load('resnet50_d2_model.pth'))
+model.eval()
 
 model = models.resnet50(weights=None)
 model.fc = nn.Linear(model.fc.in_features, 7) # 7 Sınıf
