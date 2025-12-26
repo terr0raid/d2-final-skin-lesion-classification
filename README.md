@@ -2,8 +2,8 @@
 Bu açık kaynaklı proje, HAM10000 verisi kullanılarak lisans hakları göz önünde bulundurularak geliştirilmiştir. Proje, MIT lisans haklarına tabidir ve yalnzıca açık kaynak projelerde kullanılabilir.
 
 ## Dataset & Models
-*Dataset* -> https://drive.google.com/file/d/1LI195R4rbW7gJ_fzYtmkKu4kHE4RXtXT/view?usp=sharing
-*Models* -> https://drive.google.com/file/d/1AEsaBMh2r6wvcBLArvFbUTpqiAPdVjXz/view?usp=sharing
+- *Dataset* -> https://drive.google.com/file/d/1LI195R4rbW7gJ_fzYtmkKu4kHE4RXtXT/view?usp=sharing
+- *Models* -> https://drive.google.com/file/d/1AEsaBMh2r6wvcBLArvFbUTpqiAPdVjXz/view?usp=sharing
 
 ## Proje düzeni
 ```
