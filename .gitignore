@@ -1,0 +1,7 @@
+.cursor/
+.vscode/
+data/processed/
+data/raw/
+output/models/resnet50_d2_model.pth
+output/models/vit_b16_d2_model.pth
+

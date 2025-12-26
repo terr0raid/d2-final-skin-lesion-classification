@@ -1,0 +1,11 @@
+#colab dahil degildir. sadece kullanilan kutuphanelerin listesi
+torch
+torchvision
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+Pillow
+opencv-python
+tqdm
