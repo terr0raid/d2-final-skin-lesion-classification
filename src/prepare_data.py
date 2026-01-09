@@ -13,7 +13,6 @@ ZIP_NAME = "dataset"
 
 
 def main():
-    # Kontrol: Images klasörü dolu mu?
     if not os.path.exists(IMAGES_DIR):
         print(f"HATA: '{IMAGES_DIR}' klasörü bulunamadı! Lütfen ADIM 1'i yapın.")
         return

@@ -4,4 +4,7 @@ data/processed/
 data/raw/
 output/models/resnet50_d2_model.pth
 output/models/vit_b16_d2_model.pth
-
+output/models/final_efficientnet_best.pth
+output/models/final_resnet50_best.pth
+output/models/final_resnet101_best.pth
+output/models/final_vit_best.pth
